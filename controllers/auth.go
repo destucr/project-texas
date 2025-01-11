@@ -78,18 +78,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if input is email or username
-	isEmail := isValidEmail(input.Identifier)
-
 	var user models.User
 	var err error
-	if isEmail {
-		// Search by email
-		err = config.DB.Where("email = ?", input.Identifier).First(&user).Error
-	} else {
-		// Search by username
-		err = config.DB.Where("username = ?", input.Identifier).First(&user).Error
-	}
+
+	// Search by email or username in one query
+	err = config.DB.Select("id", "email", "username", "passwordz").Where("email = ? OR username = ?", input.Identifier, input.Identifier).First(&user).Error
 
 	// Handle errors
 	if err != nil {

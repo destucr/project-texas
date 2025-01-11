@@ -16,7 +16,6 @@ func getJWTSecretKey() string {
 	if secret == "" {
 		log.Fatal("SECRET_KEY is not set in the environment variables")
 	}
-	log.Printf("Secret key loaded: %s", secret[:5]) 
 	return secret
 }
 
