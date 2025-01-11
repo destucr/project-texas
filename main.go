@@ -4,7 +4,6 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
-	"os"
 	"project-texas/config"
 	"project-texas/models"
 	"project-texas/routes"
@@ -16,10 +15,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file: %s", err)
 	}
-
-	// Debugging: Print out the loaded environment variables
-	log.Printf("DB_USER: %s", os.Getenv("DB_USER"))
-	log.Printf("SECRET_KEY: %s", os.Getenv("SECRET_KEY"))
 
 	config.Connect()
 	config.DB.AutoMigrate(&models.User{})
