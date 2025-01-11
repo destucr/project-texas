@@ -42,4 +42,4 @@ jobs:
             docker build -t ${{ secrets.DOCKER_CONTAINER_NAME }} .
 
             # Run the Docker container
-            docker run -d --name ${{ secrets.DOCKER_CONTAINER_NAME }} -p ${{ secrets.EXPOSED_PORT }}:8080 ${{ secrets.DOCKER_CONTAINER_NAME }}
+            docker run -d --name ${{ secrets.DOCKER_CONTAINER_NAME }} -p ${{ secrets.EXPOSED_PORT }}:8080 ${{ secrets.DOCKER_CONTAINER_NAME }}  --env-file .env
