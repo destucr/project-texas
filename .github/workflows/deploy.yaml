@@ -1,0 +1,29 @@
+name: Deploy Go Backend to Google Cloud VM
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allows manual trigger of the workflow
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Authenticate with Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.gcp_credentials }}'
+
+    - name: SSH into Google Cloud VM and Deploy Go App
+      uses: google-github-actions/ssh-compute@v1
+      with:
+        instance_name: 'project-texas'
+        zone: 'us-central1-a'
+        ssh_private_key: '${{ secrets.SSH_PRIVATE_KEY }}'
+        user: 'destucr'
+        command: "bash git clone  https://github.com/destucr/project-texas.git"
