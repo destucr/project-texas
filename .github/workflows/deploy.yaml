@@ -38,16 +38,10 @@ jobs:
              # Navigate to the project directory
             cd /home/destucr/project-texas
 
-               # Clean up any existing containers with the same name
-            if docker ps -a --filter "name=${{ secrets.DOCKER_CONTAINER_NAME }}" --quiet; then
-              echo "Stopping and removing the existing container..."
-              docker stop ${{ secrets.DOCKER_CONTAINER_NAME }} && docker rm ${{ secrets.DOCKER_CONTAINER_NAME }}
-            else
-              echo "No existing container found with the name ${{ secrets.DOCKER_CONTAINER_NAME }}"
-            fi
+            docker stop ${{ secrets.DOCKER_CONTAINER_NAME }} && docker rm ${{ secrets.DOCKER_CONTAINER_NAME }}
 
             # Build the Docker image using the Dockerfile
             docker build -t ${{ secrets.DOCKER_CONTAINER_NAME }} .
 
             # Run the Docker container (automatically assigning port from secrets)
-            docker run -d --name ${{ secrets.DOCKER_CONTAINER_NAME }} -p ${{ secrets.EXPOSED_PORT }}:8080 ${{ secrets.DOCKER_CONTAINER_NAME }}
+            docker run -d --name ${{ secrets.DOCKER_CONTAINER_NAME }} -p ${{ secrets.EXPOSED_PORT }}:8080 --env-file .env ${{ secrets.DOCKER_CONTAINER_NAME }}
