@@ -82,7 +82,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	// Search by email or username in one query
-	err = config.DB.Select("id", "email", "username", "passwordz").Where("email = ? OR username = ?", input.Identifier, input.Identifier).First(&user).Error
+	err = config.DB.Select("id", "email", "username", "password").Where("email = ? OR username = ?", input.Identifier, input.Identifier).First(&user).Error
 
 	// Handle errors
 	if err != nil {
