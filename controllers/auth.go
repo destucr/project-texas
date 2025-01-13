@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"net/mail"
 	"project-texas/config"
@@ -61,6 +62,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
+		log.Println("Error:", err)
 		if strings.Contains(err.Error(), "duplicate key") {
 			jsonError(w, "Email or username already taken", http.StatusBadRequest)
 			return
