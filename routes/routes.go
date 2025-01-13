@@ -1,12 +1,13 @@
 package routes
 
 import (
-    "net/http"
+    "github.com/gorilla/mux"
     "project-texas/controllers"
 )
 
-func RegisterRoutes() {
-	// Public routes
-	http.HandleFunc("/register", controllers.Register)
-	http.HandleFunc("/login", controllers.Login)
+func RegisterRoutes() *mux.Router {
+    r := mux.NewRouter()
+    r.HandleFunc("/register", controllers.Register).Methods("POST")
+    r.HandleFunc("/login", controllers.Login).Methods("POST")
+    return r
 }

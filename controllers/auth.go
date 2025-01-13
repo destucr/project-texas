@@ -2,17 +2,16 @@ package controllers
 
 import (
 	"encoding/json"
+	"gorm.io/gorm"
 	"net/http"
-	"regexp"
-
+	"net/mail"
 	"project-texas/config"
 	"project-texas/models"
 	"project-texas/utils"
-
-	"gorm.io/gorm"
+	"strings"
 )
 
-// Register handles user registration
+// / Register handles user registration
 func Register(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Username string `json:"username"`
@@ -21,26 +20,36 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse JSON input
+	if r.Body == nil {
+		jsonError(w, "Empty request body", http.StatusBadRequest)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
+		jsonError(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
 
 	// Validate input
+	if len(input.Username) == 0 {
+		jsonError(w, "Username cannot be empty", http.StatusBadRequest)
+		return
+	}
+
 	if len(input.Password) < 8 {
-		http.Error(w, "Password must be at least 8 characters", http.StatusBadRequest)
+		jsonError(w, "Password must be at least 8 characters", http.StatusBadRequest)
 		return
 	}
 
 	if !isValidEmail(input.Email) {
-		http.Error(w, "Invalid email format", http.StatusBadRequest)
+		jsonError(w, "Invalid email format", http.StatusBadRequest)
 		return
 	}
 
 	// Hash password
 	hashedPassword, err := utils.HashPassword(input.Password)
 	if err != nil {
-		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+		jsonError(w, "Error hashing password", http.StatusInternalServerError)
 		return
 	}
 
@@ -52,15 +61,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {
-		if gorm.ErrDuplicatedKey == err {
-			http.Error(w, "Email or username already exists", http.StatusBadRequest)
+		if strings.Contains(err.Error(), "duplicate key") {
+			jsonError(w, "Email or username already taken", http.StatusBadRequest)
 			return
 		}
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		jsonError(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}
 
-	// Respond
+	// Respond with success
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
 }
@@ -82,7 +91,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	// Search by email or username in one query
-	err = config.DB.Select("id", "email", "username", "password").Where("email = ? OR username = ?", input.Identifier, input.Identifier).First(&user).Error
+	err = config.DB.Select("id", "email", "username", "password").
+		Where("email = ? OR username = ?", input.Identifier, input.Identifier).
+		First(&user).Error
 
 	// Handle errors
 	if err != nil {
@@ -125,9 +136,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Helper function to validate email
-func isValidEmail(input string) bool {
-	// Regex pattern for validating email
-	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	return re.MatchString(input)
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
+
+func jsonError(w http.ResponseWriter, message string, status int) {
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{"error": message})
 }
